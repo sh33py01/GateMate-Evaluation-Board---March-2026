@@ -98,8 +98,8 @@ endfunction
 // ─── TX Arbiter signals ──────────────────────────────────────────────────────
 // These connect the buffer/parser to the TX engine
 reg [7:0] echo_byte = 0;
-reg       echo_req  = 0;   // request to echo one byte
-reg       echo_ack  = 0;   // TX engine confirms echo started
+reg       echo_req  = 0;   
+reg       echo_ack  = 0;   
 
 reg [7:0] resp_addr = 0;
 reg       resp_req  = 0;   // request to send ROM response
@@ -108,23 +108,18 @@ reg       resp_ack  = 0;   // TX engine confirms response started
 // ─── Command Buffer logic ────────────────────────────────────────────────────
 always @(posedge clk) begin
     cmd_ready <= 0;
-    echo_req  <= 0;   // default: no echo request
+    echo_req  <= 0;   
 
     if (rx_valid) begin
         if (rx_byte == CR || rx_byte == LF) begin
-            // Enter pressed - echo a newline so terminal
-            // moves to next line, then signal command ready
             if (cmd_len > 0) begin
                 echo_byte <= LF;      // send newline
                 echo_req  <= 1;
                 cmd_ready <= 1;
             end
         end else if (cmd_len < 15) begin
-            // Normal character - echo it back as-is
-            // (user sees what they typed, not uppercased)
             echo_byte <= rx_byte;
             echo_req  <= 1;
-            // Store uppercased version in buffer for comparison
             cmd_buf[cmd_len] <= to_upper(rx_byte);
             cmd_len          <= cmd_len + 1;
         end
